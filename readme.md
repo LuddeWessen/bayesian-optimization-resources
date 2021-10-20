@@ -37,6 +37,8 @@ For Ax, read this:
 For BoTorch, read this: https://github.com/pytorch/botorch/blob/main/README.md
 For PyTorch, read this: https://pytorch.org/get-started/locally/
 
+For conda environment: Use conda environment file, and then install BoTorch using conda (conda install botorch -c pytorch -c gpytorch), and subsequently ax using pip (pip3 install ax-platform)
+
 <!-- RESOURCES -->
 ## Resources:
 Ax:
