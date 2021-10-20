@@ -1,0 +1,29 @@
+name: bo_env
+channels:
+- defaults
+- pytorch
+dependencies:
+- python=3.8
+- pip
+- numpy
+- jupyter
+- matplotlib
+- scikit-learn
+- plotly
+- scipy
+- pandas
+- seaborn
+- nltk
+- h5py
+- spacy
+- unidecode
+- jinja2
+- pytorch=1.8.*
+- torchvision
+- cpuonly
+- pip:
+  - future
+  - tb-nightly
+  - gym
+  - pillow
+  - kaggle
