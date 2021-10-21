@@ -13,7 +13,6 @@
 
 import numpy as np
 import time
-import plotly
 
 from ax.plot.contour import plot_contour
 from ax.plot.trace import optimization_trace_single_method
