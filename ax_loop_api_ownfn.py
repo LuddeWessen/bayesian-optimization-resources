@@ -19,6 +19,8 @@ from ax.service.managed_loop import optimize
 from ax.metrics.branin import branin
 from ax.utils.measurement.synthetic_functions import hartmann6
 from ax.utils.notebook.plotting import render, init_notebook_plotting
+from ax.modelbridge.generation_strategy import GenerationStrategy, GenerationStep
+from ax.modelbridge.registry import Models
 
 use_float_values = False
 optimize_sum_of_violations = True
@@ -34,13 +36,26 @@ def own_eval_function(parameterization):
     x = np.array([parameterization.get(f"x{i+1}") for i in range(6)])
     print("no_elem: ", type(x[0]))
 
-
     #lambda p: (p["x1"] + 2*p["x2"] - 7)**2 + (2*p["x1"] + p["x2"] - 5)**2,
     return {"l1norm": (np.abs(x-0.5).sum(), 0.0), "l2norm": (np.sqrt(((x - 0.5) ** 2).sum()), 0.0)} # standard error is 0.0, since we only have 1 function eval (which is deterministic)
     #return (np.sqrt((x ** 2).sum()), 0.0) # standard error is 0.0, since we only have 1 function eval (which is deterministic)
 
+def sum_of_violations(x, w=10):
+    no_elem = np.shape(x)[0]
+    sum_of_violations = 0
+    for i in range(no_elem):
+        for j in range(i+1, no_elem,1):
+            if abs(x[i]-x[j]) < 0.9999999:
+                sum_of_violations += w
+
+    return sum_of_violations
+
+def tot_cost(x):
+    return sum_of_violations(x) + max(x)
+
 def own_maxsat_alldiff(parameterization):
     x = np.array([parameterization.get(f"x{i+1}") for i in range(6)])
+    """
     no_elem = np.shape(x)[0]
     sum_of_violations = 0
     maxval = max(x)
@@ -49,14 +64,19 @@ def own_maxsat_alldiff(parameterization):
             if abs(x[i]-x[j]) < 0.9999999:
                 sum_of_violations += 10
             #sum_of_violations =+ 1.0 / (0.001 + abs(x[i]-x[j]))
+    """
 
+    return {"sumofviolations": (tot_cost(x), 0.0), "l1norm": (np.abs(x-0.5).sum(), 0.0), "l2norm": (np.sqrt(((x - 0.5) ** 2).sum()), 0.0)} # standard error is 0.0, since we only have 1 function eval (which is deterministic)
 
+x = np.array([i for i in range(6)])
 
-    #lambda p: (p["x1"] + 2*p["x2"] - 7)**2 + (2*p["x1"] + p["x2"] - 5)**2,
-    return {"sumofviolations": (sum_of_violations + maxval, 0.0), "l1norm": (np.abs(x-0.5).sum(), 0.0), "l2norm": (np.sqrt(((x - 0.5) ** 2).sum()), 0.0)} # standard error is 0.0, since we only have 1 function eval (which is deterministic)
-    #return (np.sqrt((x ** 2).sum()), 0.0) # standard error is 0.0, since we only have 1 function eval (which is deterministic)
-
-
+best_cost = tot_cost(x)
+print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+print("Best cost: ", best_cost)
+print(sum_of_violations(x))
+print(max(x))
+print(x)
+print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 
 """
  If there is only one metric in the experiment – the objective – then evaluation function can return a single tuple of mean and SEM,
@@ -127,10 +147,13 @@ else:
     parameters=[
         {
             "name": "x1",
-            "type": "range",
-            "bounds": [0, 10],
+            #"type": "range",
+            #"bounds": [0, 10],
+            "type": "choice",
+            "values": [0,1,2,3,4,5,6,7,8,9, 10],
             "value_type": "int",  # Optional, defaults to inference from type of "bounds".
-            "log_scale": False,  # Optional, defaults to False.
+            "is_ordered": True
+            #"log_scale": False,  # Optional, defaults to False.
         },
         {
             "name": "x2",
@@ -173,7 +196,7 @@ else:
     and acceptable operators are “<=” and “>=”.
 """
 #parameter_constraints=["x1 + x2 >= 1.5"]
-parameter_constraints=["x2 > x1", "x3 > x2", "x4 > x3", "x5 > x4", "x6 > x5"]
+parameter_constraints=["x3 - x2 >= 1"]#, "x3 - x2 >= 1", "x4 - x3 >= 1", "x5 - x4 >= 1", "x6 - x5 >= 1"]
 """
     outcome_constraints –
     List of string representation of outcome constraints of form
@@ -198,6 +221,30 @@ if optimize_sum_of_violations:
 else:
     cfun = "l2norm"
 
+gs = GenerationStrategy(
+    steps=[
+        # 1. Initialization step (does not require pre-existing data and is well-suited for
+        # initial sampling of the search space)
+        GenerationStep(
+            model=Models.SOBOL,
+            num_trials=12,  # How many trials should be produced from this generation step
+            min_trials_observed=12, # How many trials need to be completed to move to next model
+            max_parallelism=1,  # Max parallelism for this step
+            model_kwargs={"seed": 999},  # Any kwargs you want passed into the model
+            model_gen_kwargs={},  # Any kwargs you want passed to `modelbridge.gen`
+        ),
+        # 2. Bayesian optimization step (requires data obtained from previous phase and learns
+        # from all data available at the time of each new candidate generation call)
+        GenerationStep(
+            #model=Models.FULLYBAYESIAN, #
+            model=Models.GPEI,
+            num_trials=-1,  # No limitation on how many trials should be produced from this step
+            max_parallelism=1,  # Parallelism limit for this step, often lower than for Sobol
+            # More on parallelism vs. required samples in BayesOpt:
+            # https://ax.dev/docs/bayesopt.html#tradeoff-between-parallelism-and-total-number-of-trials
+        ),
+    ]
+)
 
 
 best_parameters, values, experiment, model = optimize(
@@ -208,9 +255,10 @@ best_parameters, values, experiment, model = optimize(
     objective_name=cfun, #'sumofviolations', #"l2norm",
     evaluation_function=own_maxsat_alldiff, #own_eval_function,
     minimize=True,  # Optional, defaults to False.
-    parameter_constraints=["x1 + x2 >= 1"],#parameter_constraints,  # Optional.
+    parameter_constraints=parameter_constraints,  # Optional.
     outcome_constraints=outcome_constraints,  # Optional.
     total_trials=40, # Optional.
+    generation_strategy=gs,
 )
 
 """
@@ -235,8 +283,6 @@ print(type(model))
 
 
 # And we can introspect optimization results:
-
-# In[4]:
 
 print("best_parameters, ", type(best_parameters))
 print(best_parameters)
@@ -281,9 +327,9 @@ print(np.shape(best_objectives))
 best_objective_plot = optimization_trace_single_method(
     #y=np.minimum.accumulate(best_objectives, axis=1), #keeps returning minimum of all solutions thus far
     y=best_objectives, #returns the best cost of the actual optimizations
-    optimum=0,#hartmann6.fmin,
+    optimum=best_cost,
     title="Model performance vs. # of iterations",
-    ylabel="Hartmann6",
+    ylabel=cfun,
 )
 
 print("best_objective_plot")
