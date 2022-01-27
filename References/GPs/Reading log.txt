@@ -1,0 +1,73 @@
+Screeshots comes from: [folder, video]
+
+Intro to GPs comes from https://www.youtube.com/watch?v=tkDYEAoN5Eo
+Gps and kernel design comes from https://www.youtube.com/watch?v=s3RDIsN44HY
+
+
+A kernel k(x,y) says "how correlated will a point y be when it moves away from x" k = 1 -> the same, k = 0 --> totally uncorrelated
+This is why lengthscale and "dropoff" of kernels are important. (white noise has k(x,y) = if x == y then 1 else 0 endif)
+
+Except regression we can do classification and point-process (what does this mean?)
+
+A NN with infinite width (in the limit) can be seen as a GP
+
+Typically 10'000 datapoints is ok (storage O(n^2) is the issue)
+
+kernel needs to be positive semi definite, i.e. have only non-negative eigenvalues, i.e. only non-negative variances, since negative variances does not make sense.
+
+
+MultiOutput GPs: https://github.com/GAMES-UChile/mogptk/tree/master/examples
+
+BO:
+The surrogate model: The GP (or other fn able to calibrate uncertainty, needed for exploration)
+
+The Acquisition function: how to choose next point
+- No universally best method.
+- Not as important compared to parameters of GP
+
+GP Upper (Lower) Confidence Band
+Expected improvement (closed form solution, sometimes too greedy, i.e. can get stuck in local minima)
+Entropy search and predictive entropy search (how to sample to improve entropy, more exploration, not trivial)
+Thomson sampling (sample fn from GP, and find minimum of fn, used in PES (above))
+
+For multi-objective GPs there is also "expected hypervolume improvement"
+
+Batch BO when you do several experiments simultaneously.
+Approaches: 
+Non-greedy:
+- joint optimization of samples of batch (scales poorly (no info why)
+ 
+Greedy:
+- pick x, "guess" value, update GP, find new x etc. (better scalability)
+
+Non-myopic BO (myopic = short sighted)
+- consider your budget over the n experiment horizon, i.e. 
+
+- standard BO finds next x as if it was the last (one-step marginal utility)
+- multiple steps utility, can decomposed with Bellman recursion (optimizing non-myopic policy is intractable) 
+- two-step lookahead (takes expectation)
+- GLASSES (GLobal Optimization with Look-Ahead through Stochastic Simulation and Expected-loss Search):
+- BINOCULARS (Batch-Informed Non-myopic Choices, Using Long-horizons for Adaptive, Rapid SED)
+
+Applications:
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

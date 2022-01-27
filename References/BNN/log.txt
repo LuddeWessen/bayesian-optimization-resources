@@ -1,0 +1,4 @@
+[https://www.youtube.com/watch?v=osEWq2sBobc, Looking at loss landscape]
+Similar loss but with different parameters can have vastly different functions, so model averaging (which is what BNNs does) could harness that.
+
+Very "spretigt" and difficult to grasp.
