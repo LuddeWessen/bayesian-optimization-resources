@@ -1,0 +1,5 @@
+Notebook comes from
+
+https://github.com/lawrennd/talks/blob/c63c3eb5743941efbde01cf94d724aa49f9cb280/_notebooks/2021-11-04-deep-gaussian-processes-a-motivation-and-introduction.ipynb
+
+Went through all notebook to make sure it worked. All but some plots did.
