@@ -24,7 +24,7 @@ parameters=[
  True,True raises error, while all other combinations are ok
  Hence, giving parameter constraint on choice variables does not work
 """
-use_choice_value = True
+use_choice_value = False
 use_parameter_constraint = True
 
 
