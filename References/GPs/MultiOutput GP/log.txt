@@ -3,4 +3,6 @@ Video from:
 
 Example form TensorFlow: https://gpflow.readthedocs.io/en/master/notebooks/advanced/multioutput.html
 
-Worth noting: output function f(x) is assumed to be on the form f(x) = W*g(x), i.e. a linear combination (mixing) of the uncorrelated functions g(x).
+Worth noting: 
+output function f(x) (in R^p) is assumed to be on the form f(x) = W*g(x), i.e. a linear combination (mixing) of the uncorrelated functions g(x) (in R^L)
+where L is the number of latent GPs
