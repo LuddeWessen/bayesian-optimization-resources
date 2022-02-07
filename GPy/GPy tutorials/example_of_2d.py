@@ -3,7 +3,12 @@
 
 import GPy, numpy as np
 from matplotlib import pyplot as plt
+
+import matplotlib
+GPy.plotting.change_plotting_library("matplotlib")
 np.random.seed(1)
+
+print_to_file = True
 
 # sample inputs and outputs from 2d model
 X2 = np.random.uniform(-3.,3.,(50,2))
@@ -59,12 +64,21 @@ model2 = GPy.models.GPRegression(X,Y,ker)
 print("Parameters Pre Optimizations: ")
 print(model2)
 
+if print_to_file:
+    matplotlib.use("Agg") # if we want to save figure
+
+
 # optimize and plot
 model2.optimize(messages=True,max_f_eval = 1000)
 print("Parameters Post Optimizations: ")
 print(model)
 fig = model2.plot()
-plt.show(fig)
+
+if print_to_file:
+    fig['dataplot'][0].figure.savefig("results/model2d.png")
+else:
+    plt.show(fig)
+
 print(model2)
 
 
@@ -77,9 +91,6 @@ print(model2)
 # To get horixontal slices of the above GP, we'll fix second (index 1) input to -1, 0, and 1.5:
 
 
-import matplotlib
-#matplotlib.use("Agg") # if we want to save figure
-GPy.plotting.change_plotting_library("matplotlib")
 
 #figure, axes = plt.subplots(3, 1, constrained_layout=True)
 slices = [-1, 0, 1.5]
@@ -99,4 +110,7 @@ print(type(gs))
 
 gs.tight_layout(figure, rect=[0, 0.03, 1, 0.95])
 
-plt.show()
+if print_to_file:
+    figure.savefig("results/model_1dslices.png")
+else:
+    plt.show()
