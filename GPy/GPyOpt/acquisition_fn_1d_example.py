@@ -21,6 +21,8 @@ from GPyOpt import Design_space  ## GPyOpt design space
 from GPyOpt.models import GPModel
 from GPyOpt.acquisitions import AcquisitionEI, AcquisitionLCB, AcquisitionMPI
 
+from GPyOpt.optimization import AcquisitionOptimizer
+
 seed(12345)
 
 # Acquisition functions
@@ -70,8 +72,8 @@ space = Design_space([{'name': 'var_1', 'type': 'continuous', 'domain': (0,1)}] 
 # Now, let's have a look to see what do we need to create an acquisition, for instance the Expected improvement and the Lower Confidence Bound.
 
 # Now we create thee objects, one for each acquisition. The jitter parameter, to balance exploration and exploitation, need to be specified.
-
-acq_EI = AcquisitionEI(model,space, jitter = 0)
+ao = AcquisitionOptimizer(space=space)
+acq_EI = AcquisitionEI(model,space, ao, jitter = 0)
 acq_LCB = AcquisitionLCB(model,space,exploration_weight = 2)
 acq_MPI = AcquisitionMPI(model,space,jitter = 0)
 
@@ -116,3 +118,6 @@ plt.ylabel('a(x)',size=15)
 plt.legend()
 
 plt.show()
+
+
+print(acq_EI.optimize())
