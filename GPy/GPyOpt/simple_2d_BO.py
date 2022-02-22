@@ -55,6 +55,11 @@ n = 3
 X = np.random.rand(2*n).reshape(n,2)
 Y = f_shc(X)
 
+print("-------------------------------------")
+print("X shape: ", np.shape(X))
+print("-------------------------------------")
+
+
 m = GPy.models.GPRegression(X,Y)
 m.optimize()
 
@@ -184,7 +189,10 @@ plt.show()
 """
  Plot the function
 """
-fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+#fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+
 
 # Make data.
 X = np.arange(-2, 2, 0.25)[:,None]
@@ -194,11 +202,21 @@ print(np.shape(X))
 print(np.shape(Y))
 print(np.shape(np.hstack((X,Y))))
 
-Z = f_shc(np.hstack((X,Y)))
+#print(np.shape(Z))
 X, Y = np.meshgrid(X, Y)
+#print(Z)
 
+no_d = np.shape(X)[0]
+Z_mean = np.empty(np.shape(X), 'float')
+Z_stddev = np.empty(np.shape(X), 'float')
+Z_stddev = np.empty(np.shape(X), 'float')
+for dx_i in range(np.shape(X)[0]):
+    for dy_i in range(np.shape(X)[1]):
+        Z_mean[dx_i, dy_i], Z_stddev[dx_i, dy_i] = my_BOpt2_EI.model.predict(np.asarray([X[dx_i,dy_i], Y[dx_i,dy_i]]))
+
+#Z = f_shc(np.hstack((X,Y)))
 # Plot the surface.
-surf = ax.plot_surface(X, Y, Z,
+surf = ax.plot_surface(X, Y, Z_mean,
                        cmap=cm.coolwarm,
                        linewidth=0,
                        antialiased=False
