@@ -8,7 +8,7 @@ import matplotlib
 GPy.plotting.change_plotting_library("matplotlib")
 np.random.seed(1)
 
-print_to_file = True
+print_to_file = False
 
 # sample inputs and outputs from 2d model
 X2 = np.random.uniform(-3.,3.,(50,2))
@@ -28,6 +28,35 @@ print(model)
 
 plot = model.plot()
 plt.show(plot)
+"""
+gp_plot = model.plot(plot_limits=None, fixed_inputs=None,
+              resolution=None,
+              plot_raw=False, apply_link=False,
+              which_data_ycols='all', which_data_rows='all',
+              visible_dims=None,
+              levels=20, samples=0, samples_likelihood=0, lower=2.5, upper=97.5,
+              plot_data=True, plot_inducing=True, plot_density=False,
+              predict_kw=None, projection='3d', legend=False,
+              #**kwargs
+              )
+
+plt.show(gp_plot)
+
+
+"""
+
+gp_plot = model.plot_mean(
+              plot_limits=None, fixed_inputs=None,
+              resolution=None, plot_raw=False,
+              apply_link=False, visible_dims=None,
+              which_data_ycols='all',
+              levels=20, projection='3d',
+              label='gp mean',
+              predict_kw=None,
+              #**kwargs
+              )
+plt.show(gp_plot)
+
 
 
 
@@ -75,11 +104,13 @@ print(model)
 fig = model2.plot()
 
 if print_to_file:
-    fig['dataplot'][0].figure.savefig("results/model2d.png")
+    fig['dataplot'][0].figure.savefig("model2d.png")
 else:
     plt.show(fig)
 
 print(model2)
+
+
 
 
 # Plotting slices
@@ -111,6 +142,6 @@ print(type(gs))
 gs.tight_layout(figure, rect=[0, 0.03, 1, 0.95])
 
 if print_to_file:
-    figure.savefig("results/model_1dslices.png")
+    figure.savefig("model_1dslices.png")
 else:
     plt.show()
