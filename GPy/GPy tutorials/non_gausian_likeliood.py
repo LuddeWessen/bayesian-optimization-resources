@@ -44,3 +44,10 @@ plt.xlabel('year')
 plt.ylabel('marathon pace min/km')
 
 plt.show(plot)
+
+
+plot = m_stut.plot_f(plot_density=False)
+plt.xlabel('year')
+plt.ylabel('marathon pace min/km')
+
+plt.show(plot)
