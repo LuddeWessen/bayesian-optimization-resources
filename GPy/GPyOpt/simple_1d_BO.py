@@ -51,7 +51,7 @@ f_true.plot(bounds)
 print(type(bounds))
 print(type(bounds[0]))
 print(bounds)
-
+print(type(f_objective))
 
 # f_objective contains the function that we are going to optimize. You can define your own objective but it should be able to map any numpy array of dimension $n\times d$ (inputs) to a numpy array of dimension $n\times 1$ (outputs). For instance:
 
@@ -60,11 +60,43 @@ x = np.random.rand(n).reshape(n,1)
 print("x shape: ", np.shape(x))
 
 
-f_objective(x)
+y = f_objective(x)
 
 
 # The bounds of the problem should be defined as a tuple containing the upper and lower limits of the box in which the optimization will be performed. In our example:
 bounds = [{'name': 'var_1', 'type': 'continuous', 'domain': (0,1)}]
+
+"""
+mf_affine1 = GPy.mappings.Linear(2,2)
+mf_affine2 = GPy.mappings.Linear(2,1)
+mf_c1 = GPy.mappings.Constant(2,2)
+mf_c2 = GPy.mappings.Constant(2,1)
+
+mf_lin1 = GPy.mappings.Additive(mf_affine1, mf_c1)
+mf_lin2 = GPy.mappings.Additive(mf_affine2, mf_c2)
+mf_quad = GPy.mappings.Compound(mf_lin1, mf_lin2)
+
+mf = mf_quad
+"""
+breaks = [0.0, 0.96, 0.6, 0.75]
+values = [2.8, 14.0, 0.6, -5.0]
+
+k = GPy.kern.RBF(1)
+
+is_pw_linear = False
+if is_pw_linear:
+    mf_pw_affine1 = GPy.mappings.PiecewiseLinear(1,1, values=values, breaks=breaks)
+    mf_c = GPy.mappings.Constant(1,1)
+    mf_pw_lin = GPy.mappings.Additive(mf_pw_affine1, mf_c)
+    mf= mf_pw_lin
+else:
+    mf = GPy.mappings.Constant(1,1)
+
+
+g_likelihood = GPy.likelihoods.Gaussian()
+m = GPy.core.GP(x, y, kernel=k, likelihood=g_likelihood, mean_function=mf)
+gpmodel = GPyOpt.models.GPModel(optimize_restarts=5,verbose=False)
+gpmodel.model = m # Now we have replaced the underlying GP
 
 
 # To use BO to solve this problem, we need to create a GPyOpt object in which we need to specify the following elements:
@@ -81,7 +113,10 @@ k = GPy.kern.RBF(1)
 # Creation of the object that we will use to run BO.
 seed(1234)
 myBopt = GPyOpt.methods.BayesianOptimization(f = f_objective,        # function to optimize
+                                             model=gpmodel,
                                              domain = bounds,        # box-constrains of the problem
+                                             X=x,
+                                             Y=y,
                                              kernel = k,             # kernel of the GP
                                              acquisition_type='EI')       # acquisition = Expected improvement
 
@@ -96,6 +131,12 @@ print(myBopt.Y)
 max_iter = 15                       # evaluation budget
 myBopt.run_optimization(max_iter)   # run optimization
 
+print(myBopt.X)
+print(myBopt.Y)
+
+print(myBopt.model.model)
+
+print(myBopt.model.model.mean_function.to_dict())
 
 # And that's it! You should have receive a message describing if the method converged (two equal x's are selected in consecutive steps of the optimization) or if the maximum number of iterations was reached. In one dimensional examples, you can visualize the model and the acquisition function (normalized between 0 and 1) as follows.
 acq_plot = myBopt.plot_acquisition()
