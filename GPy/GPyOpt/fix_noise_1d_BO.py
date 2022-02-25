@@ -40,12 +40,14 @@ print(bnds)
 
 # We define the objective function
 def my_f(x):
+    print("x == ", x)
     return x**2 + 10*np.sin(x)
 
 # We define input data, and generate output
 x = np.arange(-10.0,10.0, 0.5)[:,None]
-print(np.shape(x))
-print(np.shape(my_f(x)))
+
+y = my_f(x)
+print(np.shape(y))
 
 
 """
@@ -59,7 +61,10 @@ my_BOpt = GPyOpt.methods.BayesianOptimization(f = my_f,        # function to opt
                                              domain = bnds,        # box-constrains of the problem
                                              kernel = my_k,             # kernel of the GP
                                              acquisition_type='EI',
-                                             acquisition_par=0.1
+                                             acquisition_par=0.1,
+                                             X=x,
+                                             Y=y,
+                                             initial_design_numdata=1
                                              )       # acquisition = Expected improvement
 
 """
@@ -67,8 +72,11 @@ my_BOpt = GPyOpt.methods.BayesianOptimization(f = my_f,        # function to opt
 
  (Constraints on model noise as constraints is set on the GP-model, _not_ on the BO-model)
 """
-#my_BOpt.model.model = GPyOpt.models.gpmodel.GPModel(kernel=my_k, noise_var=0.0001)
+#my_BOpt.model = GPyOpt.models.gpmodel.GPModel(kernel=my_k, noise_var=0.0001)
 
+print("type(my_BOpt.model)")
+print(type(my_BOpt.model))
+print("type(my_BOpt.model.model)")
 print(type(my_BOpt.model.model))
 
 
@@ -91,19 +99,24 @@ print("\nmy_BOpt.model.kernel (updated): ")
 # Run the BO (fixed no iterations)
 print(my_BOpt.model)
 max_iter = 15                       # evaluation budget
-#my_BOpt.run_optimization(0)   # run optimization
+my_BOpt.run_optimization(0)   # run optimization
 
 print("my_BOpt.model.model: (pre init)")
 print(my_BOpt.model.model)
+
 # This triggers the my_BOpt (a BayesianOptimization instance) to update _its_ self.model (in our case a GPModel(BOModel))
 # An update of the GPModel means to update (or create) the self.model (a GPy model)
-_ = my_BOpt.suggest_next_locations()
+try:
+    print("Next x,y: ", my_BOpt.acquisition.optimize())
+except:
+    print("Next x,y could not be calculated ")
+
 print("my_BOpt.model.model: (post init)")
 print(my_BOpt.model.model)
 
-print("my_BOpt.model.model['"'Gaussian_noise'"']: (pre fix)")
-print(my_BOpt.model.model["Gaussian_noise"])
-my_BOpt.model.model["Gaussian_noise"].fix(0.0001)
+print("my_BOpt.model.model.['"'Gaussian_noise'"']: (pre fix)")
+print(my_BOpt.model.model.Gaussian_noise)
+my_BOpt.model.model.Gaussian_noise.fix(0.0001)
 print("my_BOpt.model.model['"'Gaussian_noise'"']: (post fix)")
 
 print("my_BOpt.model.noise_var: ")
