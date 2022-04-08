@@ -25,30 +25,31 @@ import matplotlib.pyplot as plt
 import matplotlib
 
 from GPyOpt.models import GPModel
-seed(12345)
 
+seed(12345)
 
 # ### Exercise 1
 
 # We use BO to find the minimum of f(x)= x^2 + 10*sin(x), x in [-10, 10].
 
 # We define the bounds of the problem
-bnds = [{'name': 'var_1', 'type': 'continuous', 'domain': (-10,10)}]
+bnds = [{'name': 'var_1', 'type': 'continuous', 'domain': (-10, 10)}]
 print(type(bnds))
 print(type(bnds[0]))
 print(bnds)
 
+
 # We define the objective function
 def my_f(x):
     print("x == ", x)
-    return x**2 + 10*np.sin(x)
+    return x ** 2 + 10 * np.sin(x)
+
 
 # We define input data, and generate output
-x = np.arange(-10.0,10.0, 0.5)[:,None]
+x = np.arange(-10.0, 10.0, 0.5)[:, None]
 
 y = my_f(x)
 print(np.shape(y))
-
 
 """
  Create a GPyOpt object for global optimization
@@ -57,49 +58,48 @@ print(np.shape(y))
 """
 my_k = GPy.kern.Matern52(1)
 
-my_BOpt = GPyOpt.methods.BayesianOptimization(f = my_f,        # function to optimize
-                                             domain = bnds,        # box-constrains of the problem
-                                             kernel = my_k,             # kernel of the GP
-                                             acquisition_type='EI',
-                                             acquisition_par=0.1,
-                                             X=x,
-                                             Y=y,
-                                             initial_design_numdata=1
-                                             )       # acquisition = Expected improvement
+my_BOpt = GPyOpt.methods.BayesianOptimization(f=my_f,  # function to optimize
+                                              domain=bnds,  # box-constrains of the problem
+                                              kernel=my_k,  # kernel of the GP
+                                              acquisition_type='EI',
+                                              acquisition_par=0.1,
+                                              X=x,
+                                              Y=y,
+                                              initial_design_numdata=1
+                                              )  # acquisition = Expected improvement
 
 """
  Constrain the noise of the model to be 10e-4.
 
  (Constraints on model noise as constraints is set on the GP-model, _not_ on the BO-model)
 """
-#my_BOpt.model = GPyOpt.models.gpmodel.GPModel(kernel=my_k, noise_var=0.0001)
+# my_BOpt.model = GPyOpt.models.gpmodel.GPModel(kernel=my_k, noise_var=0.0001)
 
 print("type(my_BOpt.model)")
 print(type(my_BOpt.model))
 print("type(my_BOpt.model.model)")
 print(type(my_BOpt.model.model))
 
-
 # If we want to initialize (or fix) parameters of the kernel
 print("\nmy_BOpt.model.kernel (default): ")
 print(my_BOpt.model.kernel)
 print(type(my_BOpt.model.kernel.variance))
-#my_BOpt.model.kernel.variance.fix(0.0001) #variance is a object of type 'GPy.core.parameterization.param.Param'
+# my_BOpt.model.kernel.variance.fix(0.0001) #variance is a object of type 'GPy.core.parameterization.param.Param'
 
 
 print("my_BOpt.model.noise_var: ")
 print(my_BOpt.model.noise_var)
-my_BOpt.model.noise_var = 0.1 # this is used for the first GP-regression of the GPy-model, but then is no longer used or coupled to the value of the GPy-model Gaussian noise
+my_BOpt.model.noise_var = 0.1  # this is used for the first GP-regression of the GPy-model, but then is no longer used or coupled to the value of the GPy-model Gaussian noise
 print(my_BOpt.model.noise_var)
 
-#print(my_BOpt.model.get_model_parameters_names())
+# print(my_BOpt.model.get_model_parameters_names())
 
 print("\nmy_BOpt.model.kernel (updated): ")
 
 # Run the BO (fixed no iterations)
 print(my_BOpt.model)
-max_iter = 15                       # evaluation budget
-my_BOpt.run_optimization(0)   # run optimization
+max_iter = 15  # evaluation budget
+my_BOpt.run_optimization(0)  # run optimization
 
 print("my_BOpt.model.model: (pre init)")
 print(my_BOpt.model.model)
@@ -122,13 +122,12 @@ print("my_BOpt.model.model['"'Gaussian_noise'"']: (post fix)")
 print("my_BOpt.model.noise_var: ")
 print(my_BOpt.model.noise_var)
 
-#print(my_BOpt.model.model["Gaussian_noise"])
+# print(my_BOpt.model.model["Gaussian_noise"])
 
-my_BOpt.run_optimization(max_iter)   # run optimization
+my_BOpt.run_optimization(max_iter)  # run optimization
 print(my_BOpt.model.model["Gaussian_noise"])
 
 acq_plot = my_BOpt.plot_acquisition()
 plt.show(acq_plot)
-
 
 my_BOpt.plot_convergence()
